@@ -26,6 +26,7 @@ setup(
     keywords="kafka spark stream",
     packages=find_packages(),
     install_requires=[
+        "betfund_bet365 @ git+https://github.com/betfund/betfund-bet365.git@0.0.4",
         "kafka-python",
         "prefect",
     ],
