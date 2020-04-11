@@ -53,6 +53,8 @@ class Bet365UpcomingEvents(Task):
 
         NOTE: Clients Must be built  outside of `run(...)` for `Task`
         """
-        bet365_client = Bet365(api_host=self.api_host, api_key=self.api_key)
+        bet365_client = Bet365(
+            api_host=self.api_host, api_key=self.api_key
+        )
 
         return bet365_client
