@@ -1,6 +1,8 @@
 """TODO"""
 import os
 
+from operator import itemgetter
+
 from betfund_bet365 import Bet365
 from prefect import Task
 from prefect.engine.state import State
@@ -39,13 +41,18 @@ class Bet365UpcomingEvents(Task):
                 ("94", "table-tennis")
 
         Returns:
-            tuple: contains API response object and kafka topic
+            Bet365Response: response object from betfund-bet365
         """
         bet365_client = self._build_client()
 
         response = bet365_client.upcoming_events(sport_id=sport[0])
 
-        return response, self.topic
+        if not response.events:
+            return None
+
+        fi_list = list(map(itemgetter('id'), response.events))
+
+        return fi_list
 
     def _build_client(self) -> Bet365:
         """
