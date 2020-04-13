@@ -1,6 +1,5 @@
 """TODO"""
 import os
-
 from operator import itemgetter
 
 from betfund_bet365 import Bet365

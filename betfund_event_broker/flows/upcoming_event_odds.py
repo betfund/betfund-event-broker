@@ -6,11 +6,12 @@ from prefect import Flow, Parameter
 from prefect.schedules import Schedule
 from prefect.schedules.clocks import IntervalClock
 
-from betfund_bet365 import Bet365SportId
 from betfund_event_broker.flows.base import EventBrokerFlow
-from betfund_event_broker.tasks.bet365.prematch_odds import Bet365PreMatchOdds
-from betfund_event_broker.tasks.bet365.upcoming_events import Bet365UpcomingEvents
-from betfund_event_broker.tasks.pykafka.producer import EventProducer
+from betfund_event_broker.tasks.bet365 import (
+    Bet365PreMatchOdds,
+    Bet365UpcomingEvents
+)
+from betfund_event_broker.tasks.pykafka import EventProducer
 
 
 class UpcomingEventOddsFlow(EventBrokerFlow):
@@ -77,8 +78,8 @@ class UpcomingEventOddsFlow(EventBrokerFlow):
 
             flow.set_dependencies(
                 task=kafka_producer,
-                mapped=True,
                 keyword_tasks=dict(asset=bet365_pre_match_odds),
+                mapped=True,
                 upstream_tasks=[bet365_pre_match_odds],
             )
 
