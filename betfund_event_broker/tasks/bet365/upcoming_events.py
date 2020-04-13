@@ -1,17 +1,15 @@
 """TODO"""
-import os
 from operator import itemgetter
 
-from betfund_bet365 import Bet365
-from prefect import Task
-from prefect.engine.state import State
+from typing import Union
+
+from betfund_bet365.response import Bet365Response
+from betfund_event_broker.tasks.bet365 import Bet365Task
 
 
-class Bet365UpcomingEvents(Task):
+class Bet365UpcomingEvents(Bet365Task):
     """
-    Prefect Task for Bet365 API Request.
-
-    Executes GET request to `Upcoming Events` endpoint
+    Executes GET request to `Upcoming Events` endpoint.
 
     Args:
         sport (tuple): Contains sport_id and pretty
@@ -22,15 +20,7 @@ class Bet365UpcomingEvents(Task):
         State: state of prefect `Task`
     """
 
-    topic = "upcomingEvents"
-
-    def __init__(self):
-        """Constructor for Bet365UpcomingEvents"""
-        self.api_host = os.getenv("BET365_HOST")
-        self.api_key = os.getenv("BET365_KEY")
-        super().__init__()
-
-    def run(self, sport: tuple) -> State:
+    def run(self, sport: tuple) -> Union[None, Bet365Response]:
         """
         Executes API Request to `upcoming_events(...)` endpoint.
 
@@ -52,15 +42,3 @@ class Bet365UpcomingEvents(Task):
         fi_list = list(map(itemgetter('id'), response.events))
 
         return fi_list
-
-    def _build_client(self) -> Bet365:
-        """
-        Build Bet364 API Wrapper Client.
-
-        NOTE: Clients Must be built  outside of `run(...)` for `Task`
-        """
-        bet365_client = Bet365(
-            api_host=self.api_host, api_key=self.api_key
-        )
-
-        return bet365_client

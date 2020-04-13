@@ -2,8 +2,7 @@
 
 from unittest import TestCase
 
-from betfund_event_broker.tasks.bet365.upcoming_events import \
-    Bet365UpcomingEvents
+from betfund_event_broker.tasks.bet365 import Bet365UpcomingEvents
 
 
 class TestBet365UpcomingEvents(TestCase):
