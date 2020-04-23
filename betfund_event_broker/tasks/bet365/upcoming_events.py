@@ -45,9 +45,8 @@ class Bet365UpcomingEvents(Bet365Task):
         sport_name = sport[1]
 
         response = bet365_client.upcoming_events(sport_id=sport_id)
-
         logger.info(
-            f"<{sport_name.upper()}> RETURNED {len(response)} RECORDS"
+            f"<{sport_name.upper()}> RETURNED {len(response.results)} RECORDS"
         )
 
         return response
