@@ -18,9 +18,8 @@ Implementation of Prefect `Task` for `betfund-bet365`
 # Using a Bet365 Base Class
 from betfund_event_broker.tasks.bet365 import Bet365Task
 
-class Bet365PreMatchOdds(Bet365Task):
+class Bet365UpcomingEvents(Bet365Task):
     """Executes GET request to `Test` endpoint."""
-    topic = "preMatchOdds"  # include a topic if downstream task requires Kafka topic
 
     def run(self, test_arg: str):
         """
@@ -33,14 +32,14 @@ class Bet365PreMatchOdds(Bet365Task):
             tuple: contains API response object and kafka topic
         """
         bet365_client = self._build_client()
-        response = bet365_client.test_endpoint(test_arg=test_arg)
+        response = bet365_client.upcoming_events(test_arg=test_arg)
 
-        return response, self.topic
+        return response
 ```
 
 Implementation of Prefect `Flow` for a `betfund-event`
 ```python
-from betfund_event_broker.flows.base import EventBrokerFlow
+from betfund_event_broker.flows.base_flow import EventBrokerFlow
 from prefect import Flow
 
 class TestFlow(EventBrokerFlow):
@@ -54,11 +53,22 @@ class TestFlow(EventBrokerFlow):
             flow.set_dependencies(
                 task=plus_one,
                 upstream_tasks=[RunMeFirst()],
-                keyword_tasks=dict(x=10))
+                keyword_tasks=dict(x=10)),
+                mapped=False
             )
 
         return flow
 ```
+
+## Flows
+### `UpcomingEventsFlow`
+
+Workflow Diagram:
+* Fetch upcoming events and insert into NoSQL Datastore
+
+<p align="center">
+  <img width="566", height="520" src="https://imgur.com/TQOT11f.png">
+ 
 
 ## Testing
 ```bash

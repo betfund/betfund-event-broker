@@ -1,10 +1,17 @@
-"""TODO"""
-from operator import itemgetter
-
+"""Task for handling API Request to UpcomingEvents Endpoint."""
+import os
 from typing import Union
 
 from betfund_bet365.response import Bet365Response
+from betfund_logger import CloudLogger
 from betfund_event_broker.tasks.bet365 import Bet365Task
+
+logger = CloudLogger(
+    log_group="betfund-event-broker",
+    log_stream="bet365-upcoming-events",
+    aws_access_key=os.environ.get("AWS_ACCESS_KEY"),
+    aws_secret_key=os.environ.get("AWS_SECRET_KEY"),
+)
 
 
 class Bet365UpcomingEvents(Bet365Task):
@@ -20,7 +27,7 @@ class Bet365UpcomingEvents(Bet365Task):
         State: state of prefect `Task`
     """
 
-    def run(self, sport: tuple) -> Union[None, Bet365Response]:
+    def run(self, sport: tuple) -> Union[Bet365Response, None]:
         """
         Executes API Request to `upcoming_events(...)` endpoint.
 
@@ -34,11 +41,13 @@ class Bet365UpcomingEvents(Bet365Task):
         """
         bet365_client = self._build_client()
 
-        response = bet365_client.upcoming_events(sport_id=sport[0])
+        sport_id = sport[0]
+        sport_name = sport[1]
 
-        if not response.events:
-            return None
+        response = bet365_client.upcoming_events(sport_id=sport_id)
 
-        fi_list = list(map(itemgetter('id'), response.events))
+        logger.info(
+            f"<{sport_name.upper()}> RETURNED {len(response)} RECORDS"
+        )
 
-        return fi_list
+        return response

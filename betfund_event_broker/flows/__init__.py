@@ -1,8 +1,5 @@
 """Flow namespace."""
-from .base import EventBrokerFlow
-from .upcoming_event_odds import UpcomingEventOddsFlow
+from .base_flow import EventBrokerFlow
+from .upcoming_events import UpcomingEventsFlow
 
-__all__ = [
-    "EventBrokerFlow",
-    "UpcomingEventOddsFlow"
-]
+__all__ = ["EventBrokerFlow", "UpcomingEventsFlow"]

@@ -1,7 +1,9 @@
 """Baseclass Module allowing easy execution of Flows."""
 from abc import ABC, abstractmethod
 
+from dask.distributed import Client
 from prefect import Flow
+from prefect.engine.executors import DaskExecutor
 
 
 class EventBrokerFlow(ABC):
@@ -51,7 +53,9 @@ class EventBrokerFlow(ABC):
         """
         raise NotImplementedError
 
-    def execute(self, flow: Flow, *args, **kwargs):
+    def execute(
+        self, flow: Flow, executor, *args, **kwargs
+    ):
         """
         Executor of EventBrokerFlow
 
@@ -62,10 +66,14 @@ class EventBrokerFlow(ABC):
             State: State of reference tasks in Prefect Flow
         """
         flow_state = flow.run(
-            *args, **kwargs, run_on_schedule=True
+            *args, **kwargs, executor=executor, run_on_schedule=True
         )
 
         return flow_state
+
+    def register(self, flow: Flow):
+        """Registers the flow to Prefect Cloud."""
+        return flow.register()
 
     def run(self, *args, **kwargs) -> dict:
         """
@@ -82,9 +90,12 @@ class EventBrokerFlow(ABC):
         Returns:
             State: State of reference tasks in Prefect Flow
         """
+        client = Client(n_workers=4, threads_per_worker=1)
+        executor = DaskExecutor(address=client.scheduler.address)
+
         flow = self.build(*args, **kwargs)
         flow_state = self.execute(
-            flow=flow, *args, **kwargs
+            flow=flow, executor=executor, *args, **kwargs
         )
 
-        return flow_state.serialize()
+        return flow_state

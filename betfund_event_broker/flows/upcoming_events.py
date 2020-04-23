@@ -1,4 +1,4 @@
-"""Prefect Flow Builder."""
+"""Prefect Flow For Upcoming Events ETL."""
 import os
 from datetime import timedelta
 
@@ -6,19 +6,23 @@ from prefect import Flow, Parameter
 from prefect.schedules import Schedule
 from prefect.schedules.clocks import IntervalClock
 
-from betfund_event_broker.flows.base import EventBrokerFlow
-from betfund_event_broker.tasks.bet365 import (
-    Bet365PreMatchOdds,
-    Bet365UpcomingEvents
+from betfund_event_broker.flows.base_flow import EventBrokerFlow
+from betfund_event_broker.tasks.bet365 import Bet365UpcomingEvents
+from betfund_event_broker.tasks.helpers import (
+    Bet365UpcomingEventsStaging
 )
-from betfund_event_broker.tasks.pykafka import EventProducer
+from betfund_event_broker.tasks.mongo import MongoEventsUpsert
 
 
-class UpcomingEventOddsFlow(EventBrokerFlow):
+class UpcomingEventsFlow(EventBrokerFlow):
     """
-    Flow for collecting all upcoming events and push to Kafka.
+    Flow for collecting all upcoming events and insert into MongoDB.
 
-    UpcomingEventOddsFlow implements `build(...)`
+    UpcomingEventsFlow implements `build(...)`
+    Consisting of 3 tasks:
+        Bet365UpcomingEvents(Task)
+        Bet365UpcomingEventsStaging(Task)
+        MongoInsertMany(Task)
 
     Args:
         sport (str): Sport identifier for Bet365 request.
@@ -37,22 +41,20 @@ class UpcomingEventOddsFlow(EventBrokerFlow):
             sport (str): Sport identifier for Bet365 request.
         Returns:
             flow (Flow): Prefect `Flow` constructed
-            `flow` consists of 3 subclasses of `Task`
-                Bet365UpcomingEvents(Task)
         """
         schedule = Schedule(
             clocks=[
                 IntervalClock(
                     interval=timedelta(
-                        seconds=int(os.getenv("PREFECT_INTERVAL", "20"))
+                        hours=int(os.getenv("PREFECT_EVENTS_INTERVAL", "3"))
                     ),
                 )
             ]
         )
 
-        bet365_pre_match_odds = Bet365PreMatchOdds()
         bet365_upcoming_events = Bet365UpcomingEvents()
-        kafka_producer = EventProducer()
+        bet365_staging = Bet365UpcomingEventsStaging()
+        mongo_insert_many = MongoEventsUpsert()
 
         with Flow("betfund-bet365-upcoming-events-flow") as flow:
             sport = Parameter("sport")
@@ -66,21 +68,21 @@ class UpcomingEventOddsFlow(EventBrokerFlow):
             flow.set_dependencies(
                 task=bet365_upcoming_events,
                 keyword_tasks=(dict(sport=sport)),
-                mapped=True
+                mapped=True,
             )
 
             flow.set_dependencies(
-                task=bet365_pre_match_odds,
-                keyword_tasks=(dict(fi=bet365_upcoming_events)),
+                task=bet365_staging,
+                keyword_tasks=(dict(bet365_response=bet365_upcoming_events)),
                 mapped=True,
-                upstream_tasks=[bet365_upcoming_events]
+                upstream_tasks=[bet365_upcoming_events],
             )
 
             flow.set_dependencies(
-                task=kafka_producer,
-                keyword_tasks=dict(asset=bet365_pre_match_odds),
+                task=mongo_insert_many,
+                keyword_tasks=(dict(documents=bet365_staging)),
                 mapped=True,
-                upstream_tasks=[bet365_pre_match_odds],
+                upstream_tasks=[bet365_upcoming_events, bet365_staging],
             )
 
         return flow
