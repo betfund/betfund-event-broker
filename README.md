@@ -1,4 +1,8 @@
 # betfund-event-broker
+
+<a href="https://github.com/betfund/betfund-event-broker"><img alt="GitHub Actions status" src="https://github.com/betfund/betfund-event-broker/workflows/Betfund%20Event%20Broker/badge.svg?"></a>
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+
 Intermediary between Bet365 and Downstream Data Processing
 
 ## Installation
@@ -68,7 +72,64 @@ Workflow Diagram:
 
 <p align="center">
   <img width="566", height="520" src="https://imgur.com/TQOT11f.png">
- 
+
+
+## Command Line Interface
+### A CLI is available via `event-broker`
+```bash
+event-broker --help
+
+Usage: event-broker [OPTIONS] COMMAND [ARGS]...
+
+  Betfund Event Broker Command Line Interface
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  events-register  Register UpcomingEventsFlow.
+  events-run       Run UpcomingEventsFlow.
+```
+
+### To run or register `UpcomingEventsFlow`
+`event-broker events-run`
+```bash
+Usage: event-broker events-run [OPTIONS]
+
+  Run UpcomingEventsFlow.
+
+Options:
+  -s, --scheduled    Run on schedule.
+  -d, --distributed  Run distributed.
+  --help             Show this message and exit.
+```
+
+`event-broker events-register`
+```bash
+Usage: event-broker events-register [OPTIONS]
+
+  Register UpcomingEventsFlow.
+
+Options:
+  -s, --scheduled    Run on schedule.
+  -d, --distributed  Run distributed.
+  --help             Show this message and exit.
+```
+
+## Environment Variables
+
+Bet365 API Host
+- `export BET365_HOST=${BET365_HOST}`
+
+Bet365 API Key
+- `export BET365_KEY=${BET365_KEY}`
+
+MongoDB Connection String
+- `export MONGO_CONNECTION=${MONGO_CONNECTION_STRING}`
+
+**[OPTIONAL]** Prefect Schedule Interval
+- `export PREFECT_INTERVAL=${PREFECT_INTERVAL}`
+
 
 ## Testing
 ```bash

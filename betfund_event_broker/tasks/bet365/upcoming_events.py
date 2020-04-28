@@ -4,6 +4,7 @@ from typing import Union
 
 from betfund_bet365.response import Bet365Response
 from betfund_logger import CloudLogger
+
 from betfund_event_broker.tasks.bet365 import Bet365Task
 
 logger = CloudLogger(

@@ -1,6 +1,5 @@
-"""TODO"""
+"""Base interface for Prefect Task interaction with Bet365."""
 import os
-
 from abc import abstractmethod
 
 from betfund_bet365 import Bet365

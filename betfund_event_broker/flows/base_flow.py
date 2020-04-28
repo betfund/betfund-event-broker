@@ -10,6 +10,10 @@ class EventBrokerFlow(ABC):
     """
     Higher level object for `Flow` construction and execution.
 
+    Args:
+        distributed (bool): Indication if flow should use Dask executor.
+        scheduled (bool): Indication if flow has schedule.
+
     To minimize duplication of code we enact `EventBrokerFlow`
     EvenBrokerFlow has 1 abstract method:
     `build(...)`
@@ -26,7 +30,19 @@ class EventBrokerFlow(ABC):
         Through the run method the Flow is built and executed: `Flow.run(...)`
         `run(...)` will execute all reference tasks in the Flow
         The State of each task is tracked via `State` and returned as a `dict`
+
+    Returns:
+        State: Completed state of Prefect FLow
     """
+
+    def __init__(
+        self,
+        distributed: bool = False,
+        scheduled: bool = False
+    ):
+        """Constructor for EventBrokerFlow."""
+        self.distributed = distributed
+        self.scheduled = scheduled
 
     @abstractmethod
     def build(self, *args, **kwargs):
@@ -54,8 +70,8 @@ class EventBrokerFlow(ABC):
         raise NotImplementedError
 
     def execute(
-        self, flow: Flow, executor, *args, **kwargs
-    ):
+        self, flow: Flow, executor=None, *args, **kwargs
+    ):  # pylint: disable=W1113
         """
         Executor of EventBrokerFlow
 
@@ -66,16 +82,17 @@ class EventBrokerFlow(ABC):
             State: State of reference tasks in Prefect Flow
         """
         flow_state = flow.run(
-            *args, **kwargs, executor=executor, run_on_schedule=True
+            executor=executor, run_on_schedule=self.scheduled, *args, **kwargs
         )
 
         return flow_state
 
-    def register(self, flow: Flow):
+    def register(self):
         """Registers the flow to Prefect Cloud."""
-        return flow.register()
+        flow = self.build()
+        flow.register()
 
-    def run(self, *args, **kwargs) -> dict:
+    def run(self, *args, **kwargs):
         """
         Main runner for an EventBrokerFlow.
 
@@ -90,12 +107,13 @@ class EventBrokerFlow(ABC):
         Returns:
             State: State of reference tasks in Prefect Flow
         """
-        client = Client(n_workers=4, threads_per_worker=1)
-        executor = DaskExecutor(address=client.scheduler.address)
-
         flow = self.build(*args, **kwargs)
-        flow_state = self.execute(
-            flow=flow, executor=executor, *args, **kwargs
-        )
 
-        return flow_state
+        if self.distributed:
+            # Build Dask Client and Executor
+            client = Client(n_workers=4, threads_per_worker=1)
+            executor = DaskExecutor(address=client.scheduler.address)
+
+            self.execute(flow=flow, executor=executor, *args, **kwargs)
+
+        self.execute(flow=flow, *args, **kwargs)

@@ -8,9 +8,7 @@ from prefect.schedules.clocks import IntervalClock
 
 from betfund_event_broker.flows.base_flow import EventBrokerFlow
 from betfund_event_broker.tasks.bet365 import Bet365UpcomingEvents
-from betfund_event_broker.tasks.helpers import (
-    Bet365UpcomingEventsStaging
-)
+from betfund_event_broker.tasks.helpers import Bet365UpcomingEventsStaging
 from betfund_event_broker.tasks.mongo import MongoEventsUpsert
 
 
@@ -46,7 +44,7 @@ class UpcomingEventsFlow(EventBrokerFlow):
             clocks=[
                 IntervalClock(
                     interval=timedelta(
-                        hours=int(os.getenv("PREFECT_EVENTS_INTERVAL", "3"))
+                        seconds=int(os.getenv("PREFECT_INTERVAL", "10800"))
                     ),
                 )
             ]
@@ -64,7 +62,9 @@ class UpcomingEventsFlow(EventBrokerFlow):
             # A `keyword_task` is a result of a task...
             # ...that is a dependency of the `task`
 
-            flow.schedule = schedule
+            if self.scheduled:
+                flow.schedule = schedule
+
             flow.set_dependencies(
                 task=bet365_upcoming_events,
                 keyword_tasks=(dict(sport=sport)),

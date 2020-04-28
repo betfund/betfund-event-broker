@@ -39,6 +39,7 @@ setup(
             "flake8",
             "isort",
             "mock",
+            "mongomock"
             "pylint",
             "pytest",
             "pytest-cov"
@@ -47,6 +48,6 @@ setup(
     entry_points =
         """
         [console_scripts]
-        betfund-event-broker=betfund_event_broker.cli.main:run
+        event-broker=betfund_event_broker.cli.main:broker
         """
 )

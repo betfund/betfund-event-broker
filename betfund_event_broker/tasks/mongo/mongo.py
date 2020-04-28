@@ -1,11 +1,9 @@
-"""MongoDB CRUD Modules."""
+"""MongoDB CRUD Task Modules."""
 import os
-from typing import Union
 
 from betfund_logger import CloudLogger
 from prefect import Task
 from pymongo import MongoClient
-from pymongo.results import InsertManyResult
 
 logger = CloudLogger(
     log_group="betfund-event-broker",
@@ -30,25 +28,24 @@ class MongoEventsUpsert(Task):
         self.connect = os.getenv("MONGO_CONNECTION")
         super().__init__()
 
-    def run(self, documents: list) -> Union[InsertManyResult, None]:
+    def run(self, documents: list) -> bool:
         """
         Implements `MongoClient.{database}.{collection}.insert_many(...)`.
 
         Args:
-            events (list): list of Mongo `documents` to insert
+            documents (list): list of Mongo `documents` to insert
 
         Returns:
-            response (FutureRecordMetadata): resolves to RecordMetadata
+            bool: True if documents were loaded else False
         """
         mongo_client = self._build_client()
-        upcoming_events_collection = mongo_client.betfund.upcomingEvents
 
         if not documents:
-            return None
+            return False
 
         for document in documents:
             pk_fi = document.get("_id")
-            response = upcoming_events_collection.replace_one(
+            response = mongo_client.betfund.upcomingEvents.replace_one(
                 filter={"_id": pk_fi},
                 replacement=document,
                 upsert=True
@@ -60,7 +57,7 @@ class MongoEventsUpsert(Task):
                 )
             )
 
-        return "Finished"
+        return True
 
     def _build_client(self):
         """
