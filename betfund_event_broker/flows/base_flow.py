@@ -37,7 +37,7 @@ class EventBrokerFlow(ABC):
 
     def __init__(
         self,
-        distributed: bool = False,
+        distributed: bool = True,
         scheduled: bool = False
     ):
         """Constructor for EventBrokerFlow."""

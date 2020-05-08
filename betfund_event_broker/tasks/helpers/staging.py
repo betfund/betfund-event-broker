@@ -66,6 +66,8 @@ class Bet365UpcomingEventsStaging(Task):
         }
 
         del event["id"]
+
+        event["time"] = int(event["time"])
         document.update({"data": event})
 
         return document

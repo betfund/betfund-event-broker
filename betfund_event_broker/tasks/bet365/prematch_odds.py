@@ -29,19 +29,19 @@ class Bet365PreMatchOdds(Bet365Task):
         State: state of prefect `Task`
     """
 
-    def run(self, fi: str) -> Union[Bet365Response, None]:
+    def run(self, documents: dict) -> Union[Bet365Response, None]:
         """
         Executes API Request to `pre_match_odds(...)` endpoint.
 
         Args:
-            fi (str): Contains unique identifier for an event
-                (e.g.)
-                    "87941408"
+            document (dict): MongoDB document
 
         Returns:
             tuple: contains API response object and kafka topic
         """
         bet365_client = self._build_client()
+
+        fi = documents.get("_id")
 
         if not fi:
             return None

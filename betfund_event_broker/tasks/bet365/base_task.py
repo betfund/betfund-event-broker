@@ -18,7 +18,7 @@ class Bet365Task(Task):
     @abstractmethod
     def run(self):
         """
-        Method to be implemented by Base Classes.
+        Method to be implemented by SubClasses.
 
         `run(...)` will contain business logic for API Request.
         """

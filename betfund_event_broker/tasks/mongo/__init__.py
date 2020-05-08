@@ -1,5 +1,7 @@
-"""Betfund Event Broker Mongo namesapce."""
+"""Betfund Event Broker MongoDB namesapce."""
 
-from .mongo import MongoEventsUpsert
+from .base_task import MongoTask
+from .find import MongoFindEvents
+from .upsert import MongoEventsUpsert
 
-__all__ = ["MongoEventsUpsert"]
+__all__ = ["MongoFindEvents", "MongoEventsUpsert", "MongoTask"]
