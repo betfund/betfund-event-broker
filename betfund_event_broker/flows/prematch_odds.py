@@ -45,7 +45,9 @@ class PreMatchOddsFlow(EventBrokerFlow):
             clocks=[
                 IntervalClock(
                     interval=timedelta(
-                        seconds=int(os.getenv("PREFECT_INTERVAL", "30"))
+                        seconds=int(
+                            os.getenv("PRE_MATCH_ODDS_INTERVAL", "120")
+                        )
                     ),
                 )
             ]

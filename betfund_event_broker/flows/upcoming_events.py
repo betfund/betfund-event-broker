@@ -44,7 +44,9 @@ class UpcomingEventsFlow(EventBrokerFlow):
             clocks=[
                 IntervalClock(
                     interval=timedelta(
-                        seconds=int(os.getenv("PREFECT_INTERVAL", "10800"))
+                        seconds=int(
+                            os.getenv("UPCOMING_EVENTS_INTERVAL", "10800")
+                        )
                     ),
                 )
             ]
