@@ -10,7 +10,7 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="betfund-event-broker",
-    version="0.0.3",
+    version="0.0.4",
     description="Intermediary between Bet365 and Spark Stream",
     long_description=long_description,
     long_description_content_type="text/markdown",
