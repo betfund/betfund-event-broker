@@ -74,17 +74,18 @@ class PreMatchOddsFlow(EventBrokerFlow):
 
             flow.set_dependencies(
                 task=mongo_find_events,
-                keyword_tasks=(dict(epoch=point_in_time))
+                keyword_tasks=(dict(epoch=point_in_time)),
+                upstream_tasks=[unmapped(point_in_time)]
             )
 
             flow.set_dependencies(
                 task=bet365_pre_match_odds,
-                keyword_tasks=(dict(documents=mongo_find_events)),
+                keyword_tasks=(dict(document=mongo_find_events)),
                 mapped=True,
                 upstream_tasks=[
                     unmapped(point_in_time),
-                    mongo_find_events,
-                ],
+                    mongo_find_events
+                ]
             )
 
             flow.set_dependencies(
@@ -103,7 +104,7 @@ class PreMatchOddsFlow(EventBrokerFlow):
             flow.set_dependencies(
                 task=mongo_odds_upsert,
                 keyword_tasks=(
-                    dict(documents=pre_match_odds_staging)
+                    dict(attributes=pre_match_odds_staging)
                 ),
                 mapped=True,
                 upstream_tasks=[

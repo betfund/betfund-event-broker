@@ -2,8 +2,8 @@
 
 from .base_task import MongoTask
 from .find import MongoFindEvents
-from .update import MongoOddsUpsert
-from .upsert import MongoEventsUpsert
+from .upsert_events import MongoEventsUpsert
+from .upsert_odds import MongoOddsUpsert
 
 __all__ = [
     "MongoFindEvents",

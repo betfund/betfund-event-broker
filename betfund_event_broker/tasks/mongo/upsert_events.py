@@ -51,8 +51,10 @@ class MongoEventsUpsert(MongoTask):
                 upsert=True
             )
 
+            mongo_client.close()
+
             logger.info(
-                "UPDATED EXISTING: {}".format(
+                "UPSERT: EVENT | FI: {}".format(
                     pk_fi
                 )
             )

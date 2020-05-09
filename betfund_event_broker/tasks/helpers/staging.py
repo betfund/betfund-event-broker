@@ -121,7 +121,7 @@ class Bet365PreMatchOddsStaging(Task):
             attributes (dict): Attributes relevant to Mongo upcomingEvents
         """
         if not event.main:
-            return None
+            return {}
 
         attributes = {
             "_id": event.fi,  # creates primary key

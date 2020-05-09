@@ -53,8 +53,8 @@ class UpcomingEventsFlow(EventBrokerFlow):
         )
 
         bet365_upcoming_events = Bet365UpcomingEvents()
-        upcoming_events = Bet365UpcomingEventsStaging()
-        mongo_insert_many = MongoEventsUpsert()
+        upcoming_events_staging = Bet365UpcomingEventsStaging()
+        mongo_events_upsert = MongoEventsUpsert()
 
         with Flow("betfund-bet365-upcoming-events-flow") as flow:
             sport = Parameter("sport")
@@ -74,19 +74,19 @@ class UpcomingEventsFlow(EventBrokerFlow):
             )
 
             flow.set_dependencies(
-                task=upcoming_events,
+                task=upcoming_events_staging,
                 keyword_tasks=(dict(bet365_response=bet365_upcoming_events)),
                 mapped=True,
                 upstream_tasks=[bet365_upcoming_events],
             )
 
             flow.set_dependencies(
-                task=mongo_insert_many,
-                keyword_tasks=(dict(documents=upcoming_events)),
+                task=mongo_events_upsert,
+                keyword_tasks=(dict(documents=upcoming_events_staging)),
                 mapped=True,
                 upstream_tasks=[
                     bet365_upcoming_events,
-                    upcoming_events
+                    upcoming_events_staging
                 ],
             )
 

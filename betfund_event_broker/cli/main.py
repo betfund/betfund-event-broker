@@ -52,19 +52,19 @@ def run_upcoming_events(distributed=False, scheduled=False):
 @flow_options
 def register_prematch(distributed=False, scheduled=False):
     """Register PreMatchOddsFlow."""
-    prematch_odds = PreMatchOddsFlow(
+    pre_match_odds = PreMatchOddsFlow(
         distributed=distributed, scheduled=scheduled
     )
 
-    prematch_odds.register()
+    pre_match_odds.register()
 
 
 @broker.command("prematch-odds-run")
 @flow_options
 def run_prematch(distributed=False, scheduled=False):
     """Run PreMatchOddsFlow."""
-    prematch_odds = PreMatchOddsFlow(
+    pre_match_odds = PreMatchOddsFlow(
         distributed=distributed, scheduled=scheduled
     )
 
-    prematch_odds.run()
+    pre_match_odds.run()

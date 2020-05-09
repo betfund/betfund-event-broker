@@ -56,7 +56,7 @@ class MongoFindEvents(MongoTask):
             documents.append(event)
 
         logger.info(
-            "FIND: DOCUMENTS: {} | AFTER EPOCH: {}".format(
+            "FIND DOCUMENTS: {} | AFTER EPOCH: {}".format(
                 len(documents), epoch
             )
         )

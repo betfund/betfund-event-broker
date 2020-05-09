@@ -29,7 +29,7 @@ class Bet365PreMatchOdds(Bet365Task):
         State: state of prefect `Task`
     """
 
-    def run(self, documents: dict) -> Union[Bet365Response, None]:
+    def run(self, document: dict) -> Union[Bet365Response, None]:
         """
         Executes API Request to `pre_match_odds(...)` endpoint.
 
@@ -41,7 +41,7 @@ class Bet365PreMatchOdds(Bet365Task):
         """
         bet365_client = self._build_client()
 
-        fi = documents.get("_id")
+        fi = document.get("_id")
 
         if not fi:
             return None

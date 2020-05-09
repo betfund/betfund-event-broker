@@ -28,31 +28,31 @@ class MongoOddsUpsert(MongoTask):
         self.connect = os.getenv("MONGO_CONNECTION")
         super().__init__()
 
-    def run(self, documents: list) -> bool:
+    def run(self, attributes: dict) -> bool:
         """
         Implements `MongoClient.{database}.{collection}.update_one(...)`.
 
         Args:
-            documents (list): list of Mongo `documents` to insert
+            attributes (list): list of Mongo `documents` to insert
 
         Returns:
             bool: True if documents were loaded else False
         """
         mongo_client = self._build_client()
 
-        if not documents:
+        if not attributes:
             return False
 
-        for document in documents:
-            if not document:
+        for attribute in attributes:
+            pk_id = attribute.get("_id")
+            odds = attribute.get("odds", [])
+
+            if not all([pk_id, odds]):
                 return False
 
-            pk_id = document.get("_id")
-            odds = document.get("odds") or None
-
             mongo_client.betfund.upcomingEvents.update_one(
-                filter={"_id": pk_id},
-                update={
+                {"_id": pk_id},
+                {
                     "$set": {
                         "data.odds": odds
                     }
@@ -60,9 +60,11 @@ class MongoOddsUpsert(MongoTask):
                 upsert=True
             )
 
+            mongo_client.close()
+
             logger.info(
                 "UPSERT: ODDS | FI: {}".format(
-                    document.get("_id")
+                    attribute.get("_id")
                 )
             )
 
