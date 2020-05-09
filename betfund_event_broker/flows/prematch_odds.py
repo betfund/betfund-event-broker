@@ -8,20 +8,24 @@ from prefect.schedules.clocks import IntervalClock
 
 from betfund_event_broker.flows.base_flow import EventBrokerFlow
 from betfund_event_broker.tasks.bet365 import Bet365PreMatchOdds
-from betfund_event_broker.tasks.helpers import PointInTime
-from betfund_event_broker.tasks.mongo import MongoFindEvents
+from betfund_event_broker.tasks.helpers import (
+    Bet365PreMatchOddsStaging,
+    PointInTime
+)
+from betfund_event_broker.tasks.mongo import MongoFindEvents, MongoOddsUpsert
 
 
 class PreMatchOddsFlow(EventBrokerFlow):
     """
-    Flow for query and collection of pre-match odds lines.
+    Flow for query and collection of pre-match odds.
 
     PreMatchOddsFlow implements `build(...)`
     Consisting of 3 tasks:
+        PointInTime(Task)
+        MongoFindEvents(Task)
         Bet365PreMatchOdds(Task)
-
-    Args:
-        fi (str): Bet365 event fi
+        Bet365PreMatchOddsStaging(Task)
+        MongoOddsUpsert(Task)
 
     Returns:
         State: State of completed Prefect `Flow`
@@ -33,8 +37,7 @@ class PreMatchOddsFlow(EventBrokerFlow):
         Build flow via imperative API.
         `schedule` - is an IntervalClock Prefect schedule
         This is defined by an arbitrary timedelta
-        Args:
-            fi (str): Bet365 event fi
+
         Returns:
             flow (Flow): Prefect `Flow` constructed
         """
@@ -50,7 +53,9 @@ class PreMatchOddsFlow(EventBrokerFlow):
 
         point_in_time = PointInTime()
         mongo_find_events = MongoFindEvents()
-        bet365_prematch_odds = Bet365PreMatchOdds()
+        bet365_pre_match_odds = Bet365PreMatchOdds()
+        pre_match_odds_staging = Bet365PreMatchOddsStaging()
+        mongo_odds_upsert = MongoOddsUpsert()
 
         with Flow("betfund-bet365-prematch-odds-flow") as flow:
             # Using Prefect's Imperative API
@@ -71,10 +76,40 @@ class PreMatchOddsFlow(EventBrokerFlow):
             )
 
             flow.set_dependencies(
-                task=bet365_prematch_odds,
+                task=bet365_pre_match_odds,
                 keyword_tasks=(dict(documents=mongo_find_events)),
                 mapped=True,
-                upstream_tasks=[mongo_find_events, unmapped(point_in_time)],
+                upstream_tasks=[
+                    unmapped(point_in_time),
+                    mongo_find_events,
+                ],
+            )
+
+            flow.set_dependencies(
+                task=pre_match_odds_staging,
+                keyword_tasks=(
+                    dict(bet365_response=bet365_pre_match_odds)
+                ),
+                mapped=True,
+                upstream_tasks=[
+                    unmapped(point_in_time),
+                    mongo_find_events,
+                    bet365_pre_match_odds
+                ]
+            )
+
+            flow.set_dependencies(
+                task=mongo_odds_upsert,
+                keyword_tasks=(
+                    dict(documents=pre_match_odds_staging)
+                ),
+                mapped=True,
+                upstream_tasks=[
+                    unmapped(point_in_time),
+                    mongo_find_events,
+                    bet365_pre_match_odds,
+                    pre_match_odds_staging
+                ]
             )
 
         return flow

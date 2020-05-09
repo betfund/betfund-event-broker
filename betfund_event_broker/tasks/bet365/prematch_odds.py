@@ -10,7 +10,7 @@ from betfund_event_broker.tasks.bet365 import Bet365Task
 
 logger = CloudLogger(
     log_group="betfund-event-broker",
-    log_stream="bet365-prematch-odds",
+    log_stream="bet365-pre-match-odds",
     aws_access_key=os.environ.get("AWS_ACCESS_KEY"),
     aws_secret_key=os.environ.get("AWS_SECRET_KEY"),
 )
