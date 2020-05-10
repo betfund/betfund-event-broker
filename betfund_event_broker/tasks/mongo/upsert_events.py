@@ -1,19 +1,19 @@
-"""MongoDB CRUD Task Modules."""
+"""MongoDB Upsert Task Module."""
 import os
 
 from betfund_logger import CloudLogger
-from prefect import Task
-from pymongo import MongoClient
+
+from betfund_event_broker.tasks.mongo import MongoTask
 
 logger = CloudLogger(
     log_group="betfund-event-broker",
-    log_stream="mongo-insertion",
+    log_stream="mongo-upsert-event",
     aws_access_key=os.environ.get("AWS_ACCESS_KEY"),
     aws_secret_key=os.environ.get("AWS_SECRET_KEY"),
 )
 
 
-class MongoEventsUpsert(Task):
+class MongoEventsUpsert(MongoTask):
     """
     Inserts documents into Mongo collection.
 
@@ -30,7 +30,7 @@ class MongoEventsUpsert(Task):
 
     def run(self, documents: list) -> bool:
         """
-        Implements `MongoClient.{database}.{collection}.insert_many(...)`.
+        Implements `MongoClient.{database}.{collection}.replace_one(...)`.
 
         Args:
             documents (list): list of Mongo `documents` to insert
@@ -45,29 +45,18 @@ class MongoEventsUpsert(Task):
 
         for document in documents:
             pk_fi = document.get("_id")
-            response = mongo_client.betfund.upcomingEvents.replace_one(
+            mongo_client.betfund.upcomingEvents.replace_one(
                 filter={"_id": pk_fi},
                 replacement=document,
                 upsert=True
             )
 
+            mongo_client.close()
+
             logger.info(
-                "FI_ID: {} UPDATED EXISTING: {}".format(
-                    pk_fi, response.raw_result.get('updatedExisting')
+                "UPSERT: EVENT | FI: {}".format(
+                    pk_fi
                 )
             )
 
         return True
-
-    def _build_client(self):
-        """
-        Build MongoClient.
-
-        Returns:
-            mongo_client (MongoClient): MongoDB Client for self.connect
-        """
-        mongo_client = MongoClient(
-            self.connect
-        )
-
-        return mongo_client

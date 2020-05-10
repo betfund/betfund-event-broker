@@ -66,6 +66,66 @@ class Bet365UpcomingEventsStaging(Task):
         }
 
         del event["id"]
+
+        event["time"] = int(event["time"])
         document.update({"data": event})
 
         return document
+
+
+class Bet365PreMatchOddsStaging(Task):
+    """
+    Prepares Bet365 PreMatchOdds Response Object for Mongo Store.
+
+    Args:
+        bet365_response (Bet365Response): API response object
+
+    Returns:
+        State: state of prefect `Task`
+    """
+
+    def __init__(self):
+        """Constructor for Bet365ResponseStaging."""
+        super().__init__()
+
+    def run(self, bet365_response: Bet365Response) -> Union[List[dict], None]:
+        """
+        Ingestion of API Response.
+
+        Args:
+            bet365_response (Bet365Response): API response object
+
+        Returns:
+            staged_documents (list): list of documents for post
+        """
+        results = bet365_response.results
+
+        if not results:
+            return None
+
+        staged_documents = list(
+            map(self.generate_attributes, results)
+        )
+
+        return staged_documents
+
+    @staticmethod
+    def generate_attributes(event: dict) -> Union[dict, None]:
+        """
+        Extract relevant attributes for update to Mongo Collection.
+
+        Args:
+            event (dict): Singular raw API Result object
+
+        Returns:
+            attributes (dict): Attributes relevant to Mongo upcomingEvents
+        """
+        if not event.main:
+            return {}
+
+        attributes = {
+            "_id": event.fi,  # creates primary key
+            "odds": event.main.get("sp")
+        }
+
+        return attributes

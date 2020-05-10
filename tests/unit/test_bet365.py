@@ -58,7 +58,7 @@ class TestBet365PreMatchOdds(TestCase):
         mock_pre_match_odds.return_value = None
 
         result = self.test_task.run(
-            fi="123456"
+            document={"_id": "123456"}
         )
 
         assert result is None

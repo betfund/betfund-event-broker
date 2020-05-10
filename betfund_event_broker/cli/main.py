@@ -4,7 +4,7 @@ import functools
 import click
 from betfund_bet365 import Bet365SportId
 
-from betfund_event_broker.flows import UpcomingEventsFlow
+from betfund_event_broker.flows import PreMatchOddsFlow, UpcomingEventsFlow
 
 
 @click.group()
@@ -26,9 +26,9 @@ def flow_options(func):
     return functools.reduce(lambda opt, option: option(opt), options, func)
 
 
-@broker.command("events-register")
+@broker.command("upcoming-events-register")
 @flow_options
-def register(distributed=False, scheduled=False):
+def register_upcoming_events(distributed=False, scheduled=False):
     """Register UpcomingEventsFlow."""
     upcoming_events = UpcomingEventsFlow(
         distributed=distributed, scheduled=scheduled
@@ -37,12 +37,34 @@ def register(distributed=False, scheduled=False):
     upcoming_events.register()
 
 
-@broker.command("events-run")
+@broker.command("upcoming-events-run")
 @flow_options
-def run(distributed=False, scheduled=False):
+def run_upcoming_events(distributed=False, scheduled=False):
     """Run UpcomingEventsFlow."""
     upcoming_events = UpcomingEventsFlow(
         distributed=distributed, scheduled=scheduled
     )
 
     upcoming_events.run(sport=Bet365SportId.list())
+
+
+@broker.command("prematch-odds-register")
+@flow_options
+def register_prematch(distributed=False, scheduled=False):
+    """Register PreMatchOddsFlow."""
+    pre_match_odds = PreMatchOddsFlow(
+        distributed=distributed, scheduled=scheduled
+    )
+
+    pre_match_odds.register()
+
+
+@broker.command("prematch-odds-run")
+@flow_options
+def run_prematch(distributed=False, scheduled=False):
+    """Run PreMatchOddsFlow."""
+    pre_match_odds = PreMatchOddsFlow(
+        distributed=distributed, scheduled=scheduled
+    )
+
+    pre_match_odds.run()

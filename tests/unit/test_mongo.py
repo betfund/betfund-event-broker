@@ -2,11 +2,11 @@
 from unittest import TestCase
 
 import mock
-import pymongo
 from pymongo import MongoClient
 
 from betfund_event_broker.tasks import MongoEventsUpsert
 from tests.fixtures import MockMongoConnection
+
 
 class TestMongoEventsUpsert(TestCase):
     """Unit Test Cases for MongoEventsUpsert."""

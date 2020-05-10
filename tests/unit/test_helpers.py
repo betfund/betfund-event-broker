@@ -18,7 +18,8 @@ class TestBet365UpcomingEventsStaging(TestCase):
             "results": [
                 {
                     "id": "testId",
-                    "otherData": "somethingElse"
+                    "otherData": "somethingElse",
+                    "time": "123"
                 },
             ]
         }
@@ -32,7 +33,8 @@ class TestBet365UpcomingEventsStaging(TestCase):
             {
                 "_id": "testId",
                 "data": {
-                    "otherData": "somethingElse"
+                    "otherData": "somethingElse",
+                    "time": 123
                 }
             }
         ]
@@ -41,7 +43,8 @@ class TestBet365UpcomingEventsStaging(TestCase):
         """Unit test for `Bet365UpcomingEventsStaging.generate_document(...).`"""
         test_event = {
             "id": "testId",
-            "otherData": "somethingElse"
+            "otherData": "somethingElse",
+            "time": "123"
         }
 
         result = self.test_task.generate_document(
@@ -52,6 +55,7 @@ class TestBet365UpcomingEventsStaging(TestCase):
         assert result == {
             "_id": "testId",
             "data": {
-                "otherData": "somethingElse"
+                "otherData": "somethingElse",
+                "time": 123
             }
         }

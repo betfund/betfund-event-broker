@@ -10,7 +10,7 @@ from betfund_event_broker.tasks.bet365 import Bet365Task
 
 logger = CloudLogger(
     log_group="betfund-event-broker",
-    log_stream="bet365-prematch-odds",
+    log_stream="bet365-pre-match-odds",
     aws_access_key=os.environ.get("AWS_ACCESS_KEY"),
     aws_secret_key=os.environ.get("AWS_SECRET_KEY"),
 )
@@ -29,19 +29,19 @@ class Bet365PreMatchOdds(Bet365Task):
         State: state of prefect `Task`
     """
 
-    def run(self, fi: str) -> Union[Bet365Response, None]:
+    def run(self, document: dict) -> Union[Bet365Response, None]:
         """
         Executes API Request to `pre_match_odds(...)` endpoint.
 
         Args:
-            fi (str): Contains unique identifier for an event
-                (e.g.)
-                    "87941408"
+            document (dict): MongoDB document
 
         Returns:
             tuple: contains API response object and kafka topic
         """
         bet365_client = self._build_client()
+
+        fi = document.get("_id")
 
         if not fi:
             return None

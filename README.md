@@ -71,7 +71,17 @@ Workflow Diagram:
 * Fetch upcoming events and insert into NoSQL Datastore
 
 <p align="center">
-  <img width="566", height="520" src="https://imgur.com/TQOT11f.png">
+  <img width="506", height="520" src="https://imgur.com/iN6ybqz.png">
+
+
+### `PreMatchOddsFlow`
+
+Workflow Diagram:
+* Fetch pre match odds lines and update `data.odds` in NoSQL Datastore
+
+<p align="center">
+  <img width="426", height="640" src="https://imgur.com/t3RVAnw.png">
+  
 
 
 ## Command Line Interface
@@ -87,12 +97,14 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  events-register  Register UpcomingEventsFlow.
-  events-run       Run UpcomingEventsFlow.
+  prematch-odds-register    Register PreMatchOddsFlow.
+  prematch-odds-run         Run PreMatchOddsFlow.
+  upcoming-events-register  Register UpcomingEventsFlow.
+  upcoming-events-run       Run UpcomingEventsFlow.
 ```
 
 ### To run or register `UpcomingEventsFlow`
-`event-broker events-run`
+`event-broker upcoming-events-run`
 ```bash
 Usage: event-broker events-run [OPTIONS]
 
@@ -106,7 +118,7 @@ Options:
 
 `event-broker events-register`
 ```bash
-Usage: event-broker events-register [OPTIONS]
+Usage: event-broker upcoming-events-register [OPTIONS]
 
   Register UpcomingEventsFlow.
 

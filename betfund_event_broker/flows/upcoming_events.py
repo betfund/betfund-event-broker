@@ -44,15 +44,17 @@ class UpcomingEventsFlow(EventBrokerFlow):
             clocks=[
                 IntervalClock(
                     interval=timedelta(
-                        seconds=int(os.getenv("PREFECT_INTERVAL", "10800"))
+                        seconds=int(
+                            os.getenv("UPCOMING_EVENTS_INTERVAL", "10800")
+                        )
                     ),
                 )
             ]
         )
 
         bet365_upcoming_events = Bet365UpcomingEvents()
-        bet365_staging = Bet365UpcomingEventsStaging()
-        mongo_insert_many = MongoEventsUpsert()
+        upcoming_events_staging = Bet365UpcomingEventsStaging()
+        mongo_events_upsert = MongoEventsUpsert()
 
         with Flow("betfund-bet365-upcoming-events-flow") as flow:
             sport = Parameter("sport")
@@ -72,17 +74,20 @@ class UpcomingEventsFlow(EventBrokerFlow):
             )
 
             flow.set_dependencies(
-                task=bet365_staging,
+                task=upcoming_events_staging,
                 keyword_tasks=(dict(bet365_response=bet365_upcoming_events)),
                 mapped=True,
                 upstream_tasks=[bet365_upcoming_events],
             )
 
             flow.set_dependencies(
-                task=mongo_insert_many,
-                keyword_tasks=(dict(documents=bet365_staging)),
+                task=mongo_events_upsert,
+                keyword_tasks=(dict(documents=upcoming_events_staging)),
                 mapped=True,
-                upstream_tasks=[bet365_upcoming_events, bet365_staging],
+                upstream_tasks=[
+                    bet365_upcoming_events,
+                    upcoming_events_staging
+                ],
             )
 
         return flow
