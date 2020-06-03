@@ -116,4 +116,5 @@ class EventBrokerFlow(ABC):
 
             self.execute(flow=flow, executor=executor, *args, **kwargs)
 
-        self.execute(flow=flow, *args, **kwargs)
+        else:
+            self.execute(flow=flow, *args, **kwargs)

@@ -25,7 +25,7 @@ class TestMongoEventsUpsert(TestCase):
         """Unit test for `MongoEventsUpsert.run(...)` with no documents."""
         mock_mongo.return_value = MockMongoConnection()
         result = self.test_task.run(
-            documents=[]
+            operations=[]
         )
 
         assert result is False

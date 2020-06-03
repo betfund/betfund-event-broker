@@ -1,4 +1,5 @@
 """MongoDB Update Task Module."""
+import itertools
 import os
 
 from betfund_logger import CloudLogger
@@ -18,7 +19,7 @@ class MongoOddsUpsert(MongoTask):
     Inserts documents into Mongo collection.
 
     Args:
-        documents (list): list of documents to be loaded
+        operations (list): list of Mongo Operations to be loaded
 
     Returns:
         State: state of prefect `Task`
@@ -28,44 +29,34 @@ class MongoOddsUpsert(MongoTask):
         self.connect = os.getenv("MONGO_CONNECTION")
         super().__init__()
 
-    def run(self, attributes: dict) -> bool:
+    def run(self, operations: list) -> bool:
         """
-        Implements `MongoClient.{database}.{collection}.update_one(...)`.
+        Implements `MongoClient.{database}.{collection}.bulk_write(...)`.
 
         Args:
-            attributes (list): list of Mongo `documents` to insert
+            operations (list): list of Mongo `documents` to upsert
 
         Returns:
             bool: True if documents were loaded else False
         """
         mongo_client = self._build_client()
 
-        if not attributes:
+        if not operations:
             return False
 
-        for attribute in attributes:
-            pk_id = attribute.get("_id")
-            odds = attribute.get("odds", [])
+        operation_set = itertools.chain.from_iterable(operations)
+        valid_operations = [op for op in operation_set if op]
 
-            if not all([pk_id, odds]):
-                return False
+        mongo_client.betfund.upcomingEvents.bulk_write(
+            valid_operations,
+            ordered=True
+        )
 
-            mongo_client.betfund.upcomingEvents.update_one(
-                {"_id": pk_id},
-                {
-                    "$set": {
-                        "data.odds": odds
-                    }
-                },
-                upsert=True
+        mongo_client.close()
+        logger.info(
+            "BULK UPSERT: PRE-MATCH ODDS | EVENTS: {}".format(
+                len(valid_operations)
             )
-
-            mongo_client.close()
-
-            logger.info(
-                "UPSERT: ODDS | FI: {}".format(
-                    attribute.get("_id")
-                )
-            )
+        )
 
         return True

@@ -5,6 +5,7 @@ from typing import List, Union
 from betfund_bet365.response import Bet365Response
 from betfund_logger import CloudLogger
 from prefect import Task
+from pymongo import ReplaceOne, UpdateOne
 
 logger = CloudLogger(
     log_group="betfund-event-broker",
@@ -37,21 +38,21 @@ class Bet365UpcomingEventsStaging(Task):
             bet365_response (Bet365Response): API response object
 
         Returns:
-            staged_documents (list): list of documents for post
+            staged_document (ReplaceOne): Mongo Operator for upsert
         """
         results = bet365_response.results
 
         if not results:
             return None
 
-        staged_documents = list(
-            map(self.generate_document, results)
+        staged_document = list(
+            map(self.generate_operator, results)
         )
 
-        return staged_documents
+        return staged_document
 
     @staticmethod
-    def generate_document(event: dict) -> dict:
+    def generate_operator(event: dict) -> Union[dict, None]:
         """
         Create desired document structure for Mongo Collection.
 
@@ -59,18 +60,26 @@ class Bet365UpcomingEventsStaging(Task):
             event (dict): Singular raw API Result object
 
         Returns:
-            document (dict): Document conforming payload for MongoDB
+            operator (ReplaceOne): Mongo Operator for upsert
         """
+        if not event.id:
+            return None
+
         document = {
             "_id": event.id  # creates primary key
         }
 
         del event["id"]
-
         event["time"] = int(event["time"])
         document.update({"data": event})
 
-        return document
+        operator = ReplaceOne(
+            filter={"_id": document.get("_id")},
+            replacement=document,
+            upsert=True
+        )
+
+        return operator
 
 
 class Bet365PreMatchOddsStaging(Task):
@@ -88,29 +97,29 @@ class Bet365PreMatchOddsStaging(Task):
         """Constructor for Bet365ResponseStaging."""
         super().__init__()
 
-    def run(self, bet365_response: Bet365Response) -> Union[List[dict], None]:
+    def run(self, bet365_response: Bet365Response) -> Union[UpdateOne, None]:
         """
         Ingestion of API Response.
 
         Args:
-            bet365_response (Bet365Response): API response object
+            bet365_responses (Bet365Response): API response object
 
         Returns:
-            staged_documents (list): list of documents for post
+            staged_document (UpdateOne): Monogo Operator for upsert
         """
         results = bet365_response.results
 
         if not results:
             return None
 
-        staged_documents = list(
-            map(self.generate_attributes, results)
+        staged_document = list(
+            map(self.generate_operator, results)
         )
 
-        return staged_documents
+        return staged_document
 
     @staticmethod
-    def generate_attributes(event: dict) -> Union[dict, None]:
+    def generate_operator(event: dict) -> UpdateOne:
         """
         Extract relevant attributes for update to Mongo Collection.
 
@@ -118,14 +127,21 @@ class Bet365PreMatchOddsStaging(Task):
             event (dict): Singular raw API Result object
 
         Returns:
-            attributes (dict): Attributes relevant to Mongo upcomingEvents
+            operator (UpdateOne): Monogo Operator for upsert
         """
         if not event.main:
-            return {}
+            return None
 
-        attributes = {
-            "_id": event.fi,  # creates primary key
-            "odds": event.main.get("sp")
-        }
+        odds = event.main.get("sp")
 
-        return attributes
+        operator = UpdateOne(
+            filter={"_id": event.fi},
+            update={
+                "$set": {
+                    "data.odds": odds
+                }
+            },
+            upsert=True
+        )
+
+        return operator

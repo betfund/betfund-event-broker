@@ -18,7 +18,7 @@ class MongoEventsUpsert(MongoTask):
     Inserts documents into Mongo collection.
 
     Args:
-        documents (list): list of documents to be loaded
+        operations (list): list of Mongo Operations to be loaded
 
     Returns:
         State: state of prefect `Task`
@@ -28,35 +28,31 @@ class MongoEventsUpsert(MongoTask):
         self.connect = os.getenv("MONGO_CONNECTION")
         super().__init__()
 
-    def run(self, documents: list) -> bool:
+    def run(self, operations: list) -> bool:
         """
         Implements `MongoClient.{database}.{collection}.replace_one(...)`.
 
         Args:
-            documents (list): list of Mongo `documents` to insert
+            operations (list): list of Mongo `documents` to insert
 
         Returns:
             bool: True if documents were loaded else False
         """
         mongo_client = self._build_client()
 
-        if not documents:
+        if not operations:
             return False
 
-        for document in documents:
-            pk_fi = document.get("_id")
-            mongo_client.betfund.upcomingEvents.replace_one(
-                filter={"_id": pk_fi},
-                replacement=document,
-                upsert=True
-            )
+        mongo_client.betfund.upcomingEvents.bulk_write(
+            operations,
+            ordered=True
+        )
 
-            mongo_client.close()
-
-            logger.info(
-                "UPSERT: EVENT | FI: {}".format(
-                    pk_fi
-                )
+        mongo_client.close()
+        logger.info(
+            "BULK UPSERT: UPCOMING EVENTS | DOCUMENTS: {}".format(
+                len(operations)
             )
+        )
 
         return True

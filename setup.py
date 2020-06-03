@@ -23,12 +23,13 @@ setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.7",
-    keywords="kafka spark stream",
+    keywords="prefect dask broker",
     packages=find_packages(),
     install_requires=[
         "betfund_bet365 @ git+https://github.com/betfund/betfund-bet365.git@0.0.6",
         "betfund-logger @ git+https://github.com/betfund/betfund-logger.git@0.0.2",
-        "kafka-python",
+        "click",
+        "dnspython",
         "prefect",
         "pymongo",
         "pymongo[srv]"

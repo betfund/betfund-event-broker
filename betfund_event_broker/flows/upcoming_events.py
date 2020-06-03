@@ -82,7 +82,7 @@ class UpcomingEventsFlow(EventBrokerFlow):
 
             flow.set_dependencies(
                 task=mongo_events_upsert,
-                keyword_tasks=(dict(documents=upcoming_events_staging)),
+                keyword_tasks=(dict(operations=upcoming_events_staging)),
                 mapped=True,
                 upstream_tasks=[
                     bet365_upcoming_events,
