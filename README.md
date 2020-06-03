@@ -139,9 +139,6 @@ Bet365 API Key
 MongoDB Connection String
 - `export MONGO_CONNECTION=${MONGO_CONNECTION_STRING}`
 
-**[OPTIONAL]** Prefect Schedule Interval
-- `export PREFECT_INTERVAL=${PREFECT_INTERVAL}`
-
 
 ## Testing
 ```bash
