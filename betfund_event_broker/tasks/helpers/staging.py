@@ -19,9 +19,6 @@ class Bet365UpcomingEventsStaging(Task):
     """
     Prepares Bet365 Response Object for Mongo Store.
 
-    Args:
-        bet365_response (Bet365Response): API response object
-
     Returns:
         State: state of prefect `Task`
     """
@@ -30,18 +27,16 @@ class Bet365UpcomingEventsStaging(Task):
         """Constructor for Bet365ResponseStaging."""
         super().__init__()
 
-    def run(self, bet365_response: Bet365Response) -> Union[List[dict], None]:
+    def run(self, results: list) -> Union[List[ReplaceOne], None]:
         """
         Ingestion of API Response.
 
         Args:
-            bet365_response (Bet365Response): API response object
+            results (list): List of `results` objects
 
         Returns:
             staged_document (ReplaceOne): Mongo Operator for upsert
         """
-        results = bet365_response.results
-
         if not results:
             return None
 
@@ -52,7 +47,7 @@ class Bet365UpcomingEventsStaging(Task):
         return staged_document
 
     @staticmethod
-    def generate_operator(event: dict) -> Union[dict, None]:
+    def generate_operator(event: dict) -> Union[ReplaceOne, None]:
         """
         Create desired document structure for Mongo Collection.
 
@@ -62,11 +57,11 @@ class Bet365UpcomingEventsStaging(Task):
         Returns:
             operator (ReplaceOne): Mongo Operator for upsert
         """
-        if not event.id:
+        if not event.get("id"):
             return None
 
         document = {
-            "_id": event.id  # creates primary key
+            "_id": event.get("id")  # creates primary key
         }
 
         del event["id"]
@@ -86,9 +81,6 @@ class Bet365PreMatchOddsStaging(Task):
     """
     Prepares Bet365 PreMatchOdds Response Object for Mongo Store.
 
-    Args:
-        bet365_response (Bet365Response): API response object
-
     Returns:
         State: state of prefect `Task`
     """
@@ -97,12 +89,14 @@ class Bet365PreMatchOddsStaging(Task):
         """Constructor for Bet365ResponseStaging."""
         super().__init__()
 
-    def run(self, bet365_response: Bet365Response) -> Union[UpdateOne, None]:
+    def run(
+        self, bet365_response: Bet365Response
+    ) -> Union[List[UpdateOne], None]:
         """
         Ingestion of API Response.
 
         Args:
-            bet365_responses (Bet365Response): API response object
+            bet365_response (Bet365Response): API response object
 
         Returns:
             staged_document (UpdateOne): Monogo Operator for upsert
@@ -119,7 +113,7 @@ class Bet365PreMatchOddsStaging(Task):
         return staged_document
 
     @staticmethod
-    def generate_operator(event: dict) -> UpdateOne:
+    def generate_operator(event: dict) -> Union[UpdateOne, None]:
         """
         Extract relevant attributes for update to Mongo Collection.
 

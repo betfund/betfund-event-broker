@@ -87,9 +87,9 @@ class EventBrokerFlow(ABC):
 
         return flow_state
 
-    def register(self):
+    def register(self, *args, **kwargs):
         """Registers the flow to Prefect Cloud."""
-        flow = self.build()
+        flow = self.build(*args, **kwargs)
         flow.register()
 
     def run(self, *args, **kwargs):

@@ -75,7 +75,7 @@ class UpcomingEventsFlow(EventBrokerFlow):
 
             flow.set_dependencies(
                 task=upcoming_events_staging,
-                keyword_tasks=(dict(bet365_response=bet365_upcoming_events)),
+                keyword_tasks=(dict(results=bet365_upcoming_events)),
                 mapped=True,
                 upstream_tasks=[bet365_upcoming_events],
             )

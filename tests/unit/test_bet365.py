@@ -25,15 +25,20 @@ class TestBet365UpcomingEvents(TestCase):
     @mock.patch.object(Bet365, "upcoming_events")
     def test_run(self, mock_upcoming_events):
         """Unit test for `Bet365UpcomingEvents.run(...)`."""
-        mock_upcoming_events.return_value = BetfundResponse(
-            {"results": [{"this": "is"}, {"very": "empty"}]}
-        )
+        mock_upcoming_events.side_effect = [
+            BetfundResponse(
+                {"results": [{"this": "is"}, {"very": "empty"}]}
+            ),
+            BetfundResponse(
+                {"results": []}
+            ),
+        ]
 
         result = self.test_task.run(
             sport="19"
         )
 
-        assert result.results == [
+        assert result == [
             {"this": "is"}, {"very": "empty"}
         ]
 
